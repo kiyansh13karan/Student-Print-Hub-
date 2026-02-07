@@ -1,0 +1,24 @@
+{
+  "name": "student-printing-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Student Print Hub",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 5500 -c-1",
+    "dev": "npx live-server --port=5500"
+  },
+  "keywords": [
+    "printing",
+    "student",
+    "frontend",
+    "html",
+    "css",
+    "javascript"
+  ],
+  "author": "Student Print Hub",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.0"
+  }
+}

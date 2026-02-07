@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Print Hub - Order Now</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>Student Print Hub</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="templates.html" class="nav-link">Templates</a></li>
+                <li><a href="order.html" class="nav-link active">Order Now</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <section class="order-section">
+            <div class="container">
+                <div class="form-container">
+                    <h1>Place Your Order</h1>
+                    <p>Fill out the form below to place your printing order</p>
+
+                    <!-- Success Message -->
+                    <div id="successMessage" class="success-message">
+                        Order submitted successfully! We'll contact you soon.
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div id="loading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Submitting your order...</p>
+                    </div>
+
+                    <form id="orderForm" enctype="multipart/form-data">
+                        <!-- Student Name -->
+                        <div class="form-group">
+                            <label for="studentName">Student Name *</label>
+                            <input type="text" id="studentName" name="studentName" required>
+                            <div class="error-message" id="studentNameError">Please enter your name</div>
+                        </div>
+
+                        <!-- Roll Number -->
+                        <div class="form-group">
+                            <label for="rollNumber">Roll Number *</label>
+                            <input type="text" id="rollNumber" name="rollNumber" required>
+                            <div class="error-message" id="rollNumberError">Please enter your roll number</div>
+                        </div>
+
+                        <!-- College Name -->
+                        <div class="form-group">
+                            <label for="collegeName">College Name *</label>
+                            <input type="text" id="collegeName" name="collegeName" required>
+                            <div class="error-message" id="collegeNameError">Please enter your college name</div>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="form-group">
+                            <label for="subject">Subject *</label>
+                            <select id="subject" name="subject" required>
+                                <option value="">Select Subject</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Engineering Drawing">Engineering Drawing</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="error-message" id="subjectError">Please select a subject</div>
+                        </div>
+
+                        <!-- Practical Number -->
+                        <div class="form-group">
+                            <label for="practicalNumber">Practical Number *</label>
+                            <input type="text" id="practicalNumber" name="practicalNumber" required>
+                            <div class="error-message" id="practicalNumberError">Please enter practical number</div>
+                        </div>
+
+                        <!-- Teacher Name -->
+                        <div class="form-group">
+                            <label for="teacherName">Teacher Name *</label>
+                            <input type="text" id="teacherName" name="teacherName" required>
+                            <div class="error-message" id="teacherNameError">Please enter teacher's name</div>
+                        </div>
+
+                        <!-- Mobile Number -->
+                        <div class="form-group">
+                            <label for="mobileNumber">Mobile Number *</label>
+                            <input type="tel" id="mobileNumber" name="mobileNumber" pattern="[0-9]{10}" required>
+                            <div class="error-message" id="mobileNumberError">Please enter a valid 10-digit mobile
+                                number</div>
+                        </div>
+
+                        <!-- Order Details Section -->
+                        <div class="form-section-title">Order Details</div>
+
+                        <div class="form-row">
+                            <!-- Pages -->
+                            <div class="form-group half">
+                                <label for="pages">Number of Pages *</label>
+                                <input type="number" id="pages" name="pages" min="1" required>
+                            </div>
+
+                            <!-- Print Type -->
+                            <div class="form-group half">
+                                <label for="printType">Print Type *</label>
+                                <select id="printType" name="printType" required>
+                                    <option value="bw">Black & White (₹2/page)</option>
+                                    <option value="color">Color (₹5/page)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <!-- Binding -->
+                            <div class="form-group half checkbox-group">
+                                <input type="checkbox" id="binding" name="binding">
+                                <label for="binding">Add Binding (+₹30)</label>
+                            </div>
+
+                            <!-- Urgent -->
+                            <div class="form-group half checkbox-group">
+                                <input type="checkbox" id="urgent" name="urgent">
+                                <label for="urgent">Urgent Delivery (+₹20)</label>
+                            </div>
+                        </div>
+
+                        <!-- File Upload -->
+                        <div class="form-group">
+                            <label for="fileUpload">Upload File (Optional)</label>
+                            <input type="file" id="fileUpload" name="fileUpload" accept=".pdf,.doc,.docx,.txt">
+                            <div class="error-message" id="fileUploadError">Please select a valid file</div>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="form-group">
+                            <label for="notes">Additional Notes (Optional)</label>
+                            <textarea id="notes" name="notes" rows="4"
+                                placeholder="Any special instructions or requirements..."></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="submit-btn" id="submitBtn">
+                            Submit Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- WhatsApp Button -->
+    <div class="whatsapp-btn">
+        <a href="https://wa.me/917830242564" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About Student Print Hub</h3>
+                    <p>Your trusted partner for all academic printing needs. We provide high-quality printing services
+                        for students at affordable prices with fast delivery.</p>
+                    <div class="footer-contact">
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Old I.T.I Bareilly Road, Haldwani, Uttarakhand</span>
+                        </div>
+                    </div>
+                    <p><strong>Owner:</strong> Karan Nayal</p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="templates.html">Templates</a></li>
+                        <li><a href="order.html">Order Now</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Services</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Practical Files</a></li>
+                        <li><a href="#">Assignments</a></li>
+                        <li><a href="#">Study Notes</a></li>
+                        <li><a href="#">Project Reports</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Contact & Connect</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+91 7830242564</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fab fa-whatsapp"></i>
+                            <span>+91 7830242564</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>karannayalkannu1982@gmail.com</span>
+                        </div>
+                    </div>
+                    <div class="social-links">
+                        <a href="https://github.com/karannayalkannu" target="_blank" class="social-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://instagram.com/karan_nayal" target="_blank" class="social-link">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://linkedin.com/in/karan-nayal" target="_blank" class="social-link">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="https://t.me/karannayal" target="_blank" class="social-link">
+                            <i class="fab fa-telegram"></i>
+                        </a>
+                        <a href="https://wa.me/917830242564" target="_blank" class="social-link">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Student Print Hub. All rights reserved. Built with ❤️ by Karan Nayal</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="script.js"></script>
+
+    <!-- Payment Processing Modal -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="margin-bottom: 20px;">
+                <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary-color);"></i>
+            </div>
+            <h3>Processing Payment...</h3>
+            <p>Please do not close this window.</p>
+        </div>
+    </div>
+</body>
+
+</html>

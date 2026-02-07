@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Student Print Hub</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .orders-table-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .status-select {
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-download {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-whatsapp {
+            background-color: #25d366;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p>Manage printing orders</p>
+            </div>
+            <button onclick="logout()" class="btn-secondary">Logout</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 id="totalOrders">0</h3>
+                <p>Total Orders</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="pendingOrders">0</h3>
+                <p>Pending</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="completedOrders">0</h3>
+                <p>Completed</p>
+            </div>
+        </div>
+
+        <div class="orders-table-container">
+            <h2>Recent Orders</h2>
+            <div id="loading" style="text-align: center; padding: 2rem;">Loading orders...</div>
+            <table id="ordersTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Student</th>
+                        <th>File</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersBody">
+                    <!-- Orders will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for Order Details (Optional) -->
+
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Fetch orders on load
+        document.addEventListener('DOMContentLoaded', fetchOrders);
+
+        async function fetchOrders() {
+            try {
+                const response = await fetch('http://localhost:3000/api/orders', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    renderOrders(data.data);
+                    updateStats(data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                alert('Failed to load orders');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('ordersTable').style.display = 'table';
+            }
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.getElementById('ordersBody');
+            tbody.innerHTML = '';
+
+            orders.forEach(order => {
+                const tr = document.createElement('tr');
+                const date = new Date(order.createdAt).toLocaleDateString();
+                const fileUrl = order.filePath ? `http://localhost:3000/${order.filePath}` : '#';
+
+                // Payment Badge Color
+                let paymentClass = 'status-pending';
+                if (order.paymentStatus === 'paid') paymentClass = 'status-completed';
+                if (order.paymentStatus === 'failed') paymentClass = 'status-cancelled';
+
+                tr.innerHTML = `
+                    <td style="font-weight: bold; font-family: monospace;">${order.orderId || 'N/A'}</td>
+                    <td>
+                        <strong>${order.studentName}</strong><br>
+                        <small>${order.rollNumber}</small><br>
+                        <small>${order.collegeName}</small>
+                    </td>
+                    <td>
+                        ${order.fileName ? `<a href="${fileUrl}" target="_blank" class="btn-action btn-download" title="Download"><i class="fas fa-download"></i></a>` : 'No File'}
+                    </td>
+                    <td>
+                        <select onchange="updateStatus('${order._id}', this.value)" class="status-select" style="border-color: ${getStatusColor(order.status)}">
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
+                    <td>
+                        <span class="status-badge ${paymentClass}">${order.paymentStatus || 'pending'}</span>
+                        ${order.amount ? `<div style="font-size: 0.8rem; margin-top: 2px;">₹${order.amount}</div>` : ''}
+                    </td>
+                    <td>${date}</td>
+                    <td>
+                        <a href="https://wa.me/91${order.mobileNumber}" target="_blank" class="btn-action btn-whatsapp" title="WhatsApp Student"><i class="fab fa-whatsapp"></i></a>
+                        <button onclick="deleteOrder('${order._id}')" class="btn-action btn-delete" title="Delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function getStatusColor(status) {
+            switch (status) {
+                case 'pending': return 'orange';
+                case 'processing': return 'blue';
+                case 'completed': return 'green';
+                case 'cancelled': return 'red';
+                default: return '#ddd';
+            }
+        }
+
+        function updateStats(orders) {
+            document.getElementById('totalOrders').textContent = orders.length;
+            document.getElementById('pendingOrders').textContent = orders.filter(o => o.status === 'pending').length;
+            document.getElementById('completedOrders').textContent = orders.filter(o => o.status === 'completed').length;
+        }
+
+        async function updateStatus(id, status) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                if (response.ok) {
+                    // Start refreshing to show updated state/colors
+                    fetchOrders();
+                } else {
+                    alert('Failed to update status');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error updating status');
+            }
+        }
+
+        async function deleteOrder(id) {
+            if (!confirm('Are you sure you want to delete this order?')) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/orders/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    fetchOrders();
+                } else {
+                    alert('Failed to delete order');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error deleting order');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+
+</html>

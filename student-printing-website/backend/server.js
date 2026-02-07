@@ -306,7 +306,10 @@ app.get('/api/orders/track/:orderId', async (req, res) => {
 // POST /api/order - Create new order
 app.post('/api/order', upload.single('fileUpload'), async (req, res) => {
     try {
-        // Extract form data
+        console.log('--- New Order Request ---');
+        console.log('Body:', req.body);
+        console.log('File:', req.file ? req.file.originalname : 'No file');
+
         const {
             studentName,
             rollNumber,
@@ -325,6 +328,7 @@ app.post('/api/order', upload.single('fileUpload'), async (req, res) => {
         // Validate required fields
         if (!studentName || !rollNumber || !collegeName || !subject ||
             !practicalNumber || !teacherName || !mobileNumber) {
+            console.warn('Validation Failed: Missing required fields');
             return res.status(400).json({
                 success: false,
                 message: 'All required fields must be provided'
@@ -333,20 +337,26 @@ app.post('/api/order', upload.single('fileUpload'), async (req, res) => {
 
         // Validate mobile number format
         if (!/^[0-9]{10}$/.test(mobileNumber)) {
+            console.warn('Validation Failed: Invalid mobile number');
             return res.status(400).json({
                 success: false,
                 message: 'Mobile number must be 10 digits'
             });
         }
 
-        // Calculate calculatedAmount on backend for validation (Optional but recommended)
+        // Calculate calculatedAmount on backend
         let calculatedAmount = 0;
         const pageCount = parseInt(pages) || 0;
         const rate = printType === 'color' ? 5 : 2;
         calculatedAmount += pageCount * rate;
-        if (binding === 'true' || binding === true) calculatedAmount += 30;
-        if (urgent === 'true' || urgent === true) calculatedAmount += 20;
-        if (calculatedAmount === 0) calculatedAmount = 1; // Minimum
+
+        // Handle checkboxes (Multipart/form-data sends "on" or undefined)
+        const isBinding = binding === 'on' || binding === 'true' || binding === true;
+        const isUrgent = urgent === 'on' || urgent === 'true' || urgent === true;
+
+        if (isBinding) calculatedAmount += 30;
+        if (isUrgent) calculatedAmount += 20;
+        if (calculatedAmount === 0) calculatedAmount = 1;
 
         // Create order object
         const orderData = {
@@ -360,8 +370,8 @@ app.post('/api/order', upload.single('fileUpload'), async (req, res) => {
             notes: notes || '',
             pages: pageCount,
             printType: printType || 'bw',
-            binding: binding === 'true' || binding === true,
-            urgent: urgent === 'true' || urgent === true,
+            binding: isBinding,
+            urgent: isUrgent,
             amount: calculatedAmount
         };
 
@@ -371,9 +381,9 @@ app.post('/api/order', upload.single('fileUpload'), async (req, res) => {
             orderData.filePath = req.file.path;
         }
 
-        // Save order to database
         const newOrder = new Order(orderData);
         const savedOrder = await newOrder.save();
+        console.log('Order Saved Successfully:', savedOrder.orderId);
 
         console.log('📝 New order created:', savedOrder._id);
 

@@ -474,10 +474,22 @@ async function handleFormSubmit(e) {
         errorDiv.className = 'error-message';
         errorDiv.style.display = 'block';
         errorDiv.style.marginBottom = '1rem';
-        errorDiv.textContent = 'Failed to submit order. Please try again or contact us directly.';
+        errorDiv.style.backgroundColor = '#fff5f5';
+        errorDiv.style.padding = '15px';
+        errorDiv.style.borderRadius = '8px';
+        errorDiv.style.borderLeft = '4px solid #f56565';
+
+        // Show the actual error message if possible
+        errorDiv.textContent = error.message.includes('fetch')
+            ? 'Could not connect to the server. Please ensure the backend is running.'
+            : error.message;
+
         form.insertBefore(errorDiv, form.firstChild);
 
-        setTimeout(() => errorDiv.remove(), 5000);
+        setTimeout(() => {
+            errorDiv.style.opacity = '0';
+            setTimeout(() => errorDiv.remove(), 500);
+        }, 6000);
 
         // Reset button
         submitBtn.disabled = false;

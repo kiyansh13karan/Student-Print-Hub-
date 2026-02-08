@@ -131,6 +131,11 @@ const orderSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    paymentMethod: {
+        type: String,
+        enum: ['online', 'cod'],
+        default: 'online'
+    },
     amount: {
         type: Number,
         default: 0
@@ -322,7 +327,8 @@ app.post('/api/order', upload.single('fileUpload'), async (req, res) => {
             pages,
             printType,
             binding,
-            urgent
+            urgent,
+            paymentMethod
         } = req.body;
 
         // Validate required fields
@@ -372,8 +378,14 @@ app.post('/api/order', upload.single('fileUpload'), async (req, res) => {
             printType: printType || 'bw',
             binding: isBinding,
             urgent: isUrgent,
-            amount: calculatedAmount
+            amount: calculatedAmount,
+            paymentMethod: paymentMethod || 'online'
         };
+
+        // If COD, set payment status to pending (default) or handle accordingly
+        if (paymentMethod === 'cod') {
+            orderData.paymentStatus = 'pending';
+        }
 
         // Add file information if uploaded
         if (req.file) {

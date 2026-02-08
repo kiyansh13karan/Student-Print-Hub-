@@ -372,11 +372,17 @@ async function handleFormSubmit(e) {
         const result = await response.json();
 
         if (response.ok) {
-            // Step 2: Initiate Payment (Razorpay)
-            // Calculate Amount based on form data (Backend should ideally do this, but for now we trust frontend or validate in backend)
-            // For security, we should let backend calculate, but to stick to plan we send amount or let backend calculate
+            const paymentMethod = formData.get('paymentMethod');
+            const studentName = formData.get('studentName');
+            const orderId = result.orderId;
 
-            // Let's calculate amount here for display/check, but backend should recalculate
+            // Handle COD Flow
+            if (paymentMethod === 'cod') {
+                showSuccess(studentName, orderId);
+                return;
+            }
+
+            // Handle Online Payment Flow
             const pages = parseInt(formData.get('pages')) || 0;
             const printType = formData.get('printType');
             const binding = form.querySelector('#binding').checked;
@@ -387,11 +393,7 @@ async function handleFormSubmit(e) {
             amount += pages * rate;
             if (binding) amount += 30;
             if (urgent) amount += 20;
-
-            // fallback to at least 1 rupee if 0
             if (amount === 0) amount = 1;
-
-            const orderId = result.orderId; // DB ID
 
             // Call backend to create Razorpay Order
             const paymentResponse = await fetch('http://localhost:3000/api/payment/create', {
@@ -399,6 +401,11 @@ async function handleFormSubmit(e) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ amount: amount })
             });
+
+            if (!paymentResponse.ok) {
+                const errorData = await paymentResponse.json();
+                throw new Error(errorData.message || 'Payment system unavailable. Please try Cash on Delivery.');
+            }
 
             const paymentOrder = await paymentResponse.json();
 
@@ -412,7 +419,7 @@ async function handleFormSubmit(e) {
                     "description": `Print Order: ${pages} Pages (${printType})`,
                     "image": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
                     "order_id": paymentOrder.id,
-                    "handler": async function (response) {
+                    "handler": async function (paymentResponse) {
                         // Step 3: Verify Payment
                         document.getElementById('paymentModal').classList.add('active');
 
@@ -421,9 +428,9 @@ async function handleFormSubmit(e) {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_signature: response.razorpay_signature,
+                                    razorpay_order_id: paymentResponse.razorpay_order_id,
+                                    razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                                    razorpay_signature: paymentResponse.razorpay_signature,
                                     order_db_id: result.orderId // MongoDB ID
                                 })
                             });
@@ -431,14 +438,24 @@ async function handleFormSubmit(e) {
                             const verifyResult = await verifyResponse.json();
 
                             if (verifyResult.success) {
-                                showSuccess(result.data.studentName, result.orderId); // Pass Order ID or Name
+                                showSuccess(studentName, orderId);
                             } else {
                                 alert('Payment verification failed. Please contact admin.');
                             }
                         } catch (e) {
                             console.error('Verification error:', e);
+                            alert('An error occurred while verifying your payment. Please contact us.');
                         } finally {
                             document.getElementById('paymentModal').classList.remove('active');
+                        }
+                    },
+                    "modal": {
+                        "ondismiss": function () {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = 'Retry Payment';
+                            loading.style.display = 'none';
+                            form.style.transform = 'scale(1)';
+                            form.style.opacity = '1';
                         }
                     },
                     "prefill": {
@@ -456,10 +473,10 @@ async function handleFormSubmit(e) {
 
                 // Keep form in success state but wait for payment
                 loading.style.display = 'none';
-                submitBtn.innerHTML = 'Complete Payment';
+                submitBtn.innerHTML = 'Complete Online Payment';
 
             } else {
-                throw new Error('Failed to initiate payment');
+                throw new Error('Could not initiate online payment. Please try Cash on Delivery.');
             }
 
         } else {
